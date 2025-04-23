@@ -62,6 +62,40 @@ app.post('/convert-to-epoch', (req: Request, res: Response): void => {
   })
 })
 
+app.post('/convert-dates', (req: Request, res: Response): void => {
+  const request = req.body as DateRequest
+
+  if (!request.dates || !Array.isArray(request.dates)) {
+    res.status(400).send('Invalid request payload')
+    return
+  }
+
+  const formattedDates: DateObject[] = []
+
+  for (const dateStr of request.dates) {
+    const [year, month, day] = dateStr.split('-').map(Number)
+
+    const parsedDate = new Date(year, month - 1, day)
+
+    if (isNaN(parsedDate.getTime())) {
+      res.status(400).send('Invalid date format')
+      return
+    }
+
+    const formattedDate = parsedDate.toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric'
+    })
+
+    formattedDates.push({ formattedDate })
+  }
+
+  const response: DateResponse = { formattedDates }
+  res.json(response)
+})
+
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`)
 })
